@@ -28,3 +28,4 @@ exit;
 killall mysqld
 /etc/init.d/mysql start
 ```
+hehe
