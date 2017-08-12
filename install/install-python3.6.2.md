@@ -70,3 +70,5 @@ make distclean
 # ln -s /opt/python3.6.2/bin/pip3 /usr/bin/pip3
 # ln -s /opt/python3.6.2/bin/pyvenv-3.6 /usr/bin/pyvenv
 ```
+
+end
