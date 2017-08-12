@@ -1,4 +1,13 @@
-python3 中用的是 urllib.request 。使用方法有几种：
+python3 中用的是 urllib.request 。
+
+urllib是一个包,收集几个模块来处理网址:
+
+1. urllib.request 打开和浏览 <code>url</code> 中内容
+2. urllib.error 包含从 urllib.request 发生的错误或异常
+3. urllib.parse 解析 url
+4. urllib.robotparser 解析 robots.txt文件
+
+使用方法有几种：
 ```
 import urllib.request
 html = urllib.request.urlopen('url')
