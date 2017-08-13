@@ -78,3 +78,20 @@ print (html.read().decode('utf-8'))
 ```
 同时要注意，代码末尾的 <code>.decode('utf-8')</code> 这里的编码是网页用编码。
 
+## 通过 <code>Request</code> 来请求
+
+```
+# -*- conding: utf-8 -*-
+
+#修改系统默认编码为utf-8
+import io
+import sys
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf-8')
+
+import urllib.request
+
+req = urllib.request.Request('http://www.luanzun.com/')
+response = urllib.request.urlopen(req)
+the_page = response.read()
+print (the_page.decode('utf-8'))
+```
