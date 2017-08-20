@@ -55,7 +55,7 @@ def parseListLinks(url):
 # 获取多分页中的文章链接
 url = 'http://yule.52pk.com/mingxing/list_{}.shtml'
 news_total = []
-for i in range(3,4):
+for i in range(1,4):
     newsurl = url.format(i)
     newsary = parseListLinks(newsurl)
     news_total.extend(newsary)
