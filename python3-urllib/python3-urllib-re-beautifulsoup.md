@@ -56,3 +56,18 @@ for newslist in soup.select('.artlist'):
     #     h3 = news.select('h3')[0].text
     #     print(h3)
 ```
+
+
+过滤 <code>a</code> 标签
+下面代码意思是将 <code>str</code> 中的 <code>a</code> 替换为无。
+```
+a = re.sub(r'</?a[^>]*>','',str)
+```
+同理，过滤 <code>p</code> 标签则是
+```
+a = re.sub(r'</?p[^>]*>','',str)
+```
+过滤所有的 html 标签
+```
+r'</?\w+[^>]*>'
+```
