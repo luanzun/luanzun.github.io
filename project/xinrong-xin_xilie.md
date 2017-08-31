@@ -6,14 +6,14 @@
 import io
 import sys
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer,encoding='utf-8')
-
-import re #正则
-from bs4 import BeautifulSoup #导入html规则库
-from datetime import datetime, timedelta # 时间模组
-import time
-import urllib.request #爬虫
-import urllib.parse
-import http.cookiejar #cookie
+#正则
+import re 
+#导入html规则库
+from bs4 import BeautifulSoup 
+# 时间模组
+from datetime import datetime, timedelta 
+#爬虫
+import urllib.request 
 import json
 import pandas # 数据
 import openpyxl # 实现 pandas 导出 excel
@@ -63,26 +63,18 @@ def getInvestInfo(jsonurl):
 amount = getAmount(url)
 #根据总标数来判断json地址分页
 news_total = []
-if amount <= 20:
-    jsonurl = url.format(amount,'1')
-    b = getInvestInfo(jsonurl)
-    news_total.extend(b)
-    df = pandas.DataFrame(news_total)
-    a = df.to_excel('news.xlsx')
-elif amount >20 and amount%20 == 0:
+if amount >20 and amount%20 == 0:
     pageSize = amount//20 +1
     for i in range(1,pageSize):
         jsonurl = url.format('20',i)
         b = getInvestInfo(jsonurl)
         news_total.extend(b)
-        df = pandas.DataFrame(news_total)
-        a = df.to_excel('news.xlsx')
 else:
     pageSize = amount//20 + 2
     for i in range(1,pageSize):
         jsonurl = url.format('20',i)
         b = getInvestInfo(jsonurl)
         news_total.extend(b)
-        df = pandas.DataFrame(news_total)
-        a = df.to_excel('news.xlsx')
+df = pandas.DataFrame(news_total)
+a = df.to_excel('xin-series.xlsx')
 ```
