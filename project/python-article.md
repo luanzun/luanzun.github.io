@@ -1,3 +1,4 @@
+```
 #!flask/bin/python3
 # -*- conding: utf-8 -*-
 
@@ -62,8 +63,7 @@ for p in soup.select('#article p')[:-1]:
     article.append(p.text.strip()) 
 ' '.join(article) #合并元素内容
 print(article)
-
-
+```
 
 ## 列表页
 
