@@ -1,4 +1,4 @@
-1.入到需要保存 flask 的目录下，并使用 pyvenv 来创建虚拟环境。使用 pyvenv创建的虚拟环境，只有 python3 ，并不包含系统自带的 2.7 版本。
+1. 入到需要保存 flask 的目录下，并使用 pyvenv 来创建虚拟环境。使用 pyvenv创建的虚拟环境，只有 python3 ，并不包含系统自带的 2.7 版本。
 ```
 cd /home/pyte.vip ## *pyte.vip* 是我的网站根目录，请自行替换成自己的网站根目录，下同
 python3.6 -m venv flask
@@ -26,7 +26,8 @@ pip3 install guess_language
 pip3 install flipflop
 pip3 install coverage
 ```
-4. 为应用程序创建基本的文件结构(提示：如果退出了虚拟环境状态，那么需要你 *cd* 到 网站根目录（本例中的 *pyte.vip*）中)：
+4.为应用程序创建基本的文件结构(提示：如果退出了虚拟环境状态，那么需要你 *cd* 到 网站根目录（本例中的 *pyte.vip*）中)：
+
 ```
 mkdir app
 mkdir app/static
