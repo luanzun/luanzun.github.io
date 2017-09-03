@@ -1,3 +1,4 @@
+# Debian8 + Flask + Nginx + uWSGI + uWSGI Emperor 
 
 1. <code>uWSGI</code> 配置文件 <code>/home/luejiao.com/luejiao_uwsgi.ini</code>
 ```
@@ -55,7 +56,8 @@ location / {
 ```
 
 下面是重头戏，**debian8** 和 **debian7** 在配置 <code>uWSGI Emperor</code> 是不一样的！！！
-本文章是讲 **debian8** 的环境下配置 <code>uWSGI Emperor</code> 。
+**debian7** 是把配置文件放到 <code>/etc/init/uwsgi.conf</code>，而在 **debian8** 中，是放到 <code>/etc/systemd/system/</code> 中的。
+本文章是讲 **debian8** 的环境下配置 <code>uWSGI Emperor</code> 。 [官方对应文档](http://uwsgi-docs-zh.readthedocs.io/zh_CN/latest/Systemd.html?highlight=conf)
 
 4. 新建<code>/etc/systemd/system/emperor.uwsgi.service</code>文件，代码如下：
 ```
@@ -101,3 +103,4 @@ chown -R www:www /var/log/uwsgi/
 ```
 service uwsgi start
 ```
+
