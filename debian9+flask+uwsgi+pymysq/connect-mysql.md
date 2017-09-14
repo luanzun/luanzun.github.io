@@ -1,5 +1,4 @@
 <code>app/__init__.py</code> 添加初始化代码
-
 ```
 # -*- conding: utf-8 -*-
 from flask import Flask
@@ -43,6 +42,15 @@ class User(db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+class Post(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    body = db.Column(db.String(140))
+    timestamp = db.Column(db.DateTime)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+
+    def __repr__(self):
+        return '<Post %r>' % (self.body)
 ```
 <code>db_migrate.py</code> 执行操作代码，其中部分操作代码被我注释了，可以根据实际情况取消注释来测试效果：
 ```
@@ -79,7 +87,13 @@ if __name__ == '__main__':
     #db.session.delete(mod_role)
     #db.session.commit()
     # 注意删除，和插入更新一样，都是在数据库会话提交后执行
-
+    
+    #添加文章
+    u = models.User.query.get(2)
+    p = models.Post(body='这是我的第一篇文章！', timestamp = datetime.datetime.utcnow(), author = u)
+    db.session.add(p)
+    db.session.commit()
+    
     # 查询
     #print(user_role)
     print(models.User.query.filter_by(role=user_role).all())
