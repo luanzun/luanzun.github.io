@@ -1,632 +1,242 @@
-# 第 一 部 分 Flask简介
+## 第 3 章 模板
 
-## 第 1 章安装
-在大多数标准中，Flask（http://flask.pocoo.org/）都算是小型框架，小到可以称为“微框架”。Flask 非常小，因此你一旦能够熟练使用它，很可能就能读懂它所有的源码。
+要想开发出易于维护的程序，关键在于编写形式简洁且结构良好的代码。到目前为止，你看到的示例都太简单，无法说明这一点，但 Flask 视图函数的两个完全独立的作用却被融合在了一起，这就产生了一个问题。
 
-但是，小并不意味着它比其他框架的功能少。Flask 自开发伊始就被设计为可扩展的框架，它具有一个包含基本服务的强健核心，其他功能则可通过扩展实现。你可以自己挑选所需的扩展包，组成一个没有附加功能的精益组合，从而完全精确满足自身需求。
+视图函数的作用很明确，即生成请求的响应，如第 2 章中的示例所示。对最简单的请求来说，这就足够了，但一般而言，请求会改变程序的状态，而这种变化也会在视图函数中产生。
 
-Flask 有两个主要依赖：路由、调试和 Web 服务器网关接口（Web Server Gateway Interface，WSGI）子系统由 Werkzeug（http://werkzeug.pocoo.org/）提供；模板系统由 Jinja2（http://jinja.pocoo.org/）提供。Werkzeug 和 Jinjia2 都是由 Flask 的核心开发者开发而成。
+例如，用户在网站中注册了一个新账户。用户在表单中输入电子邮件地址和密码，然后点击提交按钮。服务器接收到包含用户输入数据的请求，然后 Flask 把请求分发到处理注册请求的视图函数。这个视图函数需要访问数据库，添加新用户，然后生成响应回送浏览器。这两个过程分别称为业务逻辑和表现逻辑。
 
-Flask 并不原生支持数据库访问、Web 表单验证和用户认证等高级功能。这些功能以及其他大多数 Web 程序中需要的核心服务都以扩展的形式实现，然后再与核心包集成。开发者可以任意挑选符合项目需求的扩展，甚至可以自行开发。这和大型框架的做法相反，大型框架往往已经替你做出了大多数决定，难以（有时甚至不允许）使用替代方案。
+把业务逻辑和表现逻辑混在一起会导致代码难以理解和维护。假设要为一个大型表格构建HTML 代码，表格中的数据由数据库中读取的数据以及必要的 HTML 字符串连接在一起。把表现逻辑移到模板中能够提升程序的可维护性。
 
-本章介绍如何安装 Flask。在这一学习过程中，你只需要一台安装了 Python 的电脑。
+模板是一个包含响应文本的文件，其中包含用占位变量表示的动态部分，其具体值只在请求的上下文中才能知道。使用真实值替换变量，再返回最终得到的响应字符串，这一过程称为渲染。为了渲染模板，Flask 使用了一个名为 Jinja2 的强大模板引擎。
 
->本书中的代码示例已经通过 Python 2.7 和 Python 3.3 的测试，所以我们强烈建议大家选用这两个版本。
+### 3.1 Jinja2模板引擎
+形式最简单的 Jinja2 模板就是一个包含响应文本的文件。示例 3-1 是一个 Jinja2 模板，它和示例 2-1 中 index() 视图函数的响应一样。
 
-### 1.1　使用虚拟环境
-安装 Flask 最便捷的方式是使用虚拟环境。虚拟环境是 Python 解释器的一个私有副本，在这个环境中你可以安装私有包，而且不会影响系统中安装的全局 Python 解释器。
-
-虚拟环境非常有用，可以在系统的 Python 解释器中避免包的混乱和版本的冲突。为每个程序单独创建虚拟环境可以保证程序只能访问虚拟环境中的包，从而保持全局解释器的干净整洁，使其只作为创建（更多）虚拟环境的源。使用虚拟环境还有个好处，那就是不需要管理员权限。
-
-虚拟环境使用第三方实用工具 virtualenv 创建。输入以下命令可以检查系统是否安装了virtualenv：
-```
-$ virtualenv --version
-```
-如果结果显示错误，你就需要安装这个工具。
-
->Python 3.3 通过 venv 模块原生支持虚拟环境，命令为 pyvenv。pyvenv 可以替代 virtualenv。不过要注意，在 Python 3.3 中使用 pyvenv 命令创建的虚拟环境不包含 pip，你需要进行手动安装。Python 3.4 改进了这一缺陷，pyvenv 完全可以代替 virtualenv。
-
-大多数 Linux 发行版都提供了 virtualenv 包。例如，Ubuntu 用户可以使用下述命令安装它：
-```
-$ sudo apt-get install python-virtualenv
-```
-如果你的电脑是 Mac OS X 系统，就可以使用 easy_install 安装 virtualenv：
-```
-$ sudo easy_install virtualenv
-```
-如果你使用微软的 Windows 系统或其他没有官方 virtualenv 包的操作系统，那么安装过程要稍微复杂一点。
-
-在浏览器中输入网址 https://bitbucket.org/pypa/setuptools，回车后会进入 setuptools 安装程序的主页。在这个页面中找到下载安装脚本的链接，脚本名为 ez_setup.py。把这个文件保存到电脑的一个临时文件夹中，然后在这个文件夹中执行以下命令：
-```
-$ python ez_setup.py
-$ easy_install virtualenv
-```
-
->上述命令必须以具有管理员权限的用户身份执行。在微软 Windows 系统中，请使用“以管理员身份运行”选项打开命令行窗口；在基于 Unix 的系统中，要在上面两个命令前加上 sudo，或者以根用户身份执行。一旦安装完毕，virtualenv 实用工具就可以从常规账户中调用。
-
-现在你要新建一个文件夹，用来保存示例代码（示例代码可从 GitHub 库中获取）。我们在前言的“如何使用示例代码”一节中说过，获取示例代码最简便的方式是使用 Git 客户端直接从 GitHub 下载。下述命令从 GitHub 下载示例代码，并把程序文件夹切换到“1a”版本，即程序的初始版本：
-```
-$ git clone https://github.com/miguelgrinberg/flasky.git
-$ cd flasky
-$ git checkout 1a
-```
-下一步是使用 virtualenv 命令在 flasky 文件夹中创建 Python 虚拟环境。这个命令只有一个必需的参数，即虚拟环境的名字。创建虚拟环境后，当前文件夹中会出现一个子文件夹，名字就是上述命令中指定的参数，与虚拟环境相关的文件都保存在这个子文件夹中。
-
-按照惯例，一般虚拟环境会被命名为 venv：
-```
-$ virtualenv venv
-New python executable in venv/bin/python2.7
-Also creating executable in venv/bin/python
-Installing setuptools............done.
-Installing pip...............done.
-```
-现在，flasky 文件夹中就有了一个名为 venv 的子文件夹，它保存一个全新的虚拟环境，其
-中有一个私有的 Python 解释器。在使用这个虚拟环境之前，你需要先将其“激活”。如果
-你使用 bash 命令行（Linux 和 Mac OS X 用户），可以通过下面的命令激活这个虚拟环境：
-$ source venv/bin/activate
-如果使用微软 Windows 系统，激活命令是：
-$ venv\Scripts\activate
-虚拟环境被激活后，其中 Python 解释器的路径就被添加进 PATH 中，但这种改变不是永久
-性的，它只会影响当前的命令行会话。为了提醒你已经激活了虚拟环境，激活虚拟环境的
-命令会修改命令行提示符，加入环境名：
-(venv) $
-当虚拟环境中的工作完成后，如果你想回到全局 Python 解释器中，可以在命令行提示符下
-输入 deactivate。
-6 ｜ 第 1 章
-1.2　使用pip安装Python包
-大多数 Python 包都使用 pip 实用工具安装，使用 virtualenv 创建虚拟环境时会自动安装
-pip。激活虚拟环境后，pip 所在的路径会被添加进 PATH。
-如果你在 Python 3.3 中使用 pyvenv 创建虚拟环境，那就需要手动安装 pip。
-安 装 方 法 参 见 pip 的 网 站（https://pip.pypa.io/en/latest/installing.html）。 在
-Python 3.4 中，pyvenv 会自动安装 pip。
-执行下述命令可在虚拟环境中安装 Flask：
-(venv) $ pip install flask
-执行上述命令，你就在虚拟环境中安装 Flask 及其依赖了。要想验证 Flask 是否正确安装，
-你可以启动 Python 解释器，尝试导入 Flask：
-(venv) $ python
->>> import flask
->>>
-如果没有看到错误提醒，那恭喜你——你已经可以开始学习第 2 章的内容，了解如何开发
-第一个 Web 程序了。
-7
-第 2 章
-程序的基本结构
-本章将带你了解 Flask 程序各部分的作用，编写并运行第一个 Flask Web 程序。
-2.1　初始化
-所有 Flask 程序都必须创建一个程序实例。Web 服务器使用一种名为 Web 服务器网关接口
-（Web Server Gateway Interface，WSGI）的协议，把接收自客户端的所有请求都转交给这
-个对象处理。程序实例是 Flask 类的对象，经常使用下述代码创建：
-from flask import Flask
-app = Flask(__name__)
-Flask 类的构造函数只有一个必须指定的参数，即程序主模块或包的名字。在大多数程序
-中，Python 的 __name__ 变量就是所需的值。
-将构造函数的 name 参数传给 Flask 程序，这一点可能会让 Flask 开发新手心
-生迷惑。Flask 用这个参数决定程序的根目录，以便稍后能够找到相对于程
-序根目录的资源文件位置。
-后文会介绍更复杂的程序初始化方式，对于简单的程序来说，上面的代码足够了。
-2.2　路由和视图函数
-客户端（例如 Web 浏览器）把请求发送给 Web 服务器，Web 服务器再把请求发送给 Flask
-8 ｜ 第 2 章
-程序实例。程序实例需要知道对每个 URL 请求运行哪些代码，所以保存了一个 URL 到
-Python 函数的映射关系。处理 URL 和函数之间关系的程序称为路由。
-在 Flask 程序中定义路由的最简便方式，是使用程序实例提供的 app.route 修饰器，把修
-饰的函数注册为路由。下面的例子说明了如何使用这个修饰器声明路由：
-@app.route('/')
-def index():
- return '<h1>Hello World!</h1>'
-修饰器是 Python 语言的标准特性，可以使用不同的方式修改函数的行为。惯
-常用法是使用修饰器把函数注册为事件的处理程序。
-前例把 index() 函数注册为程序根地址的处理程序。如果部署程序的服务器域名为 www.
-example.com，在浏览器中访问 http://www.example.com 后，会触发服务器执行 index() 函
-数。这个函数的返回值称为响应，是客户端接收到的内容。如果客户端是 Web 浏览器，响
-应就是显示给用户查看的文档。
-像 index() 这样的函数称为视图函数（view function）。视图函数返回的响应可以是包含
-HTML 的简单字符串，也可以是复杂的表单，后文会介绍。
-在 Python 代码中嵌入响应字符串会导致代码难以维护，此处这么做只是为了
-介绍响应的概念。你将在第 3 章了解生成响应的正确方法。
-如果你仔细观察日常所用服务的某些 URL 格式，会发现很多地址中都包含可变部分。例
-如， 你 的 Facebook 资 料 页 面 的 地 址 是 http://www.facebook.com/<your-name>， 用 户 名
-（your-name）是地址的一部分。Flask 支持这种形式的 URL，只需在 route 修饰器中使用特
-殊的句法即可。下例定义的路由中就有一部分是动态名字：
-@app.route('/user/<name>')
-def user(name):
- return '<h1>Hello, %s!</h1>' % name
-尖括号中的内容就是动态部分，任何能匹配静态部分的 URL 都会映射到这个路由上。调
-用视图函数时，Flask 会将动态部分作为参数传入函数。在这个视图函数中，参数用于生
-成针对个人的欢迎消息。
-程序的基本结构 ｜ 9
-路由中的动态部分默认使用字符串，不过也可使用类型定义。例如，路由 /user/<int:id>
-只会匹配动态片段 id 为整数的 URL。Flask 支持在路由中使用 int、float 和 path 类型。
-path 类型也是字符串，但不把斜线视作分隔符，而将其当作动态片段的一部分。
-2.3　启动服务器
-程序实例用 run 方法启动 Flask 集成的开发 Web 服务器：
-if __name__ == '__main__':
- app.run(debug=True)
-__name__=='__main__' 是 Python 的惯常用法，在这里确保直接执行这个脚本时才启动开发
-Web 服务器。如果这个脚本由其他脚本引入，程序假定父级脚本会启动不同的服务器，因
-此不会执行 app.run()。
-服务器启动后，会进入轮询，等待并处理请求。轮询会一直运行，直到程序停止，比如按
-Ctrl-C 键。
-有一些选项参数可被 app.run() 函数接受用于设置 Web 服务器的操作模式。在开发过程中
-启用调试模式会带来一些便利，比如说激活调试器和重载程序。要想启用调试模式，我们
-可以把 debug 参数设为 True。
-Flask 提供的 Web 服务器不适合在生产环境中使用。第 17 章会介绍生产环
-境 Web 服务器。
-2.4　一个完整的程序
-前几节介绍了 Flask Web 程序的不同组成部分，现在是时候开发一个程序了。整个 hello.py
-程序脚本就是把前面介绍的三部分合并到一个文件中。程序代码如示例 2-1 所示。
-示例 2-1 hello.py：一个完整的 Flask 程序
-from flask import Flask
-app = Flask(__name__)
-@app.route('/')
-def index():
- return '<h1>Hello World!</h1>'
-if __name__ == '__main__':
- app.run(debug=True)
-10 ｜ 第 2 章
-如果你已经从 GitHub 上克隆了这个程序的 Git 仓库，那么可以执行 git
-checkout 2a 签出程序的这个版本。
-要想运行这个程序，请确保激活了你之前创建的虚拟环境，并在其中安装了 Flask。现在
-打开 Web 浏览器，在地址栏中输入 http://127.0.0.1:5000/。图 2-1 是浏览器连接到程序后的
-示意图。
-图 2-1 hello.py Flask 程序
-然后使用下述命令启动程序：
-(venv) $ python hello.py
- * Running on http://127.0.0.1:5000/
- * Restarting with reloader
-如果你输入其他地址，程序将不知道如何处理，因此会向浏览器返回错误代码 404。访问
-不存在的网页时，你也会经常看到这个熟悉的错误。
-示例 2-2 是这个程序的增强版，添加了一个动态路由。访问这个地址时，你会看到一则针
-对个人的欢迎消息。
-示例 2-2 hello.py：包含动态路由的 Flask 程序
-from flask import Flask
-app = Flask(__name__)
-@app.route('/')
-def index():
- return '<h1>Hello World!</h1>'
-@app.route('/user/<name>')
-程序的基本结构 ｜ 11
-def user(name):
- return '<h1>Hello, %s!</h1>' % name
-if __name__ == '__main__':
- app.run(debug=True)
-如果你已经从 GitHub 上克隆了这个程序的 Git 仓库，那么可以执行 git
-checkout 2b 签出程序的这个版本。
-测试动态路由前，你要确保服务器正在运行中，然后访问 http://localhost:5000/user/Dave。
-程序会显示一个使用 name 动态参数生成的欢迎消息。请尝试使用不同的名字，可以看到视
-图函数总是使用指定的名字生成响应。图 2-2 展示了一个示例。
-图 2-2　动态路由
-2.5　请求-响应循环
-现在你已经开发了一个简单的 Flask 程序，或许希望进一步了解 Flask 的工作方式。下面几
-节将介绍这个框架的一些设计理念。
-2.5.1　程序和请求上下文
-Flask 从客户端收到请求时，要让视图函数能访问一些对象，这样才能处理请求。请求对
-象就是一个很好的例子，它封装了客户端发送的 HTTP 请求。
-要想让视图函数能够访问请求对象，一个显而易见的方式是将其作为参数传入视图函数，
-不过这会导致程序中的每个视图函数都增加一个参数。除了访问请求对象，如果视图函数
-12 ｜ 第 2 章
-在处理请求时还要访问其他对象，情况会变得更糟。
-为了避免大量可有可无的参数把视图函数弄得一团糟，Flask 使用上下文临时把某些对象
-变为全局可访问。有了上下文，就可以写出下面的视图函数：
-from flask import request
-@app.route('/')
-def index():
- user_agent = request.headers.get('User-Agent')
- return '<p>Your browser is %s</p>' % user_agent
-注意在这个视图函数中我们如何把 request 当作全局变量使用。事实上，request 不可能是
-全局变量。试想，在多线程服务器中，多个线程同时处理不同客户端发送的不同请求时，
-每个线程看到的 request 对象必然不同。Falsk 使用上下文让特定的变量在一个线程中全局
-可访问，与此同时却不会干扰其他线程。
-线程是可单独管理的最小指令集。进程经常使用多个活动线程，有时还会共
-享内存或文件句柄等资源。多线程 Web 服务器会创建一个线程池，再从线
-程池中选择一个线程用于处理接收到的请求。
-在 Flask 中有两种上下文：程序上下文和请求上下文。表 2-1 列出了这两种上下文提供的
-变量。
-表2-1 Flask上下文全局变量
-变量名 上下文 说　　明
-current_app 程序上下文 当前激活程序的程序实例
-g 程序上下文 处理请求时用作临时存储的对象。每次请求都会重设这个变量
-request 请求上下文 请求对象，封装了客户端发出的 HTTP 请求中的内容
-session 请求上下文 用户会话，用于存储请求之间需要“记住”的值的词典
-Flask 在分发请求之前激活（或推送）程序和请求上下文，请求处理完成后再将其删除。程
-序上下文被推送后，就可以在线程中使用 current_app 和 g 变量。类似地，请求上下文被
-推送后，就可以使用 request 和 session 变量。如果使用这些变量时我们没有激活程序上
-下文或请求上下文，就会导致错误。如果你不知道为什么这 4 个上下文变量如此有用，先
-别担心，后面的章节会详细说明。
-下面这个 Python shell 会话演示了程序上下文的使用方法：
->>> from hello import app
->>> from flask import current_app
->>> current_app.name
-程序的基本结构 ｜ 13
-Traceback (most recent call last):
-...
-RuntimeError: working outside of application context
->>> app_ctx = app.app_context()
->>> app_ctx.push()
->>> current_app.name
-'hello'
->>> app_ctx.pop()
-在这个例子中，没激活程序上下文之前就调用 current_app.name 会导致错误，但推送完上
-下文之后就可以调用了。注意，在程序实例上调用 app.app_context() 可获得一个程序上
-下文。
-2.5.2　请求调度
-程序收到客户端发来的请求时，要找到处理该请求的视图函数。为了完成这个任务，Flask
-会在程序的 URL 映射中查找请求的 URL。URL 映射是 URL 和视图函数之间的对应关系。
-Flask 使用 app.route 修饰器或者非修饰器形式的 app.add_url_rule() 生成映射。
-要想查看 Flask 程序中的 URL 映射是什么样子，我们可以在 Python shell 中检查为 hello.py
-生成的映射。测试之前，请确保你激活了虚拟环境：
-(venv) $ python
->>> from hello import app
->>> app.url_map
-Map([<Rule '/' (HEAD, OPTIONS, GET) -> index>,
- <Rule '/static/<filename>' (HEAD, OPTIONS, GET) -> static>,
- <Rule '/user/<name>' (HEAD, OPTIONS, GET) -> user>])
-/ 和 /user/<name> 路由在程序中使用 app.route 修饰器定义。/static/<filename> 路由是
-Flask 添加的特殊路由，用于访问静态文件。第 3 章会详细介绍静态文件。
-URL 映射中的 HEAD、Options、GET 是请求方法，由路由进行处理。Flask 为每个路由都指
-定了请求方法，这样不同的请求方法发送到相同的 URL 上时，会使用不同的视图函数进
-行处理。HEAD 和 OPTIONS 方法由 Flask 自动处理，因此可以这么说，在这个程序中，URL
-映射中的 3 个路由都使用 GET 方法。第 4 章会介绍如何为路由指定不同的请求方法。
-2.5.3　请求钩子
-有时在处理请求之前或之后执行代码会很有用。例如，在请求开始时，我们可能需要创
-建数据库连接或者认证发起请求的用户。为了避免在每个视图函数中都使用重复的代码，
-Flask 提供了注册通用函数的功能，注册的函数可在请求被分发到视图函数之前或之后
-调用。
-请求钩子使用修饰器实现。Flask 支持以下 4 种钩子。
-14 ｜ 第 2 章
-• before_first_request：注册一个函数，在处理第一个请求之前运行。
-• before_request：注册一个函数，在每次请求之前运行。
-• after_request：注册一个函数，如果没有未处理的异常抛出，在每次请求之后运行。
-• teardown_request：注册一个函数，即使有未处理的异常抛出，也在每次请求之后运行。
-在请求钩子函数和视图函数之间共享数据一般使用上下文全局变量 g。例如，before_
-request 处理程序可以从数据库中加载已登录用户，并将其保存到 g.user 中。随后调用视
-图函数时，视图函数再使用 g.user 获取用户。
-请求钩子的用法会在后续章中介绍，如果你现在不太理解，也不用担心。
-2.5.4　响应
-Flask 调用视图函数后，会将其返回值作为响应的内容。大多数情况下，响应就是一个简
-单的字符串，作为 HTML 页面回送客户端。
-但 HTTP 协议需要的不仅是作为请求响应的字符串。HTTP 响应中一个很重要的部分是状
-态码，Flask 默认设为 200，这个代码表明请求已经被成功处理。
-如果视图函数返回的响应需要使用不同的状态码，那么可以把数字代码作为第二个返回
-值，添加到响应文本之后。例如，下述视图函数返回一个 400 状态码，表示请求无效：
-@app.route('/')
-def index():
- return '<h1>Bad Request</h1>', 400
-视图函数返回的响应还可接受第三个参数，这是一个由首部（header）组成的字典，可以
-添加到 HTTP 响应中。一般情况下并不需要这么做，不过你会在第 14 章看到一个例子。
-如果不想返回由 1 个、2 个或 3 个值组成的元组，Flask 视图函数还可以返回 Response 对
-象。make_response() 函数可接受 1 个、2 个或 3 个参数（和视图函数的返回值一样），并
-返回一个 Response 对象。有时我们需要在视图函数中进行这种转换，然后在响应对象上调
-用各种方法，进一步设置响应。下例创建了一个响应对象，然后设置了 cookie：
-from flask import make_response
-@app.route('/')
-def index():
- response = make_response('<h1>This document carries a cookie!</h1>')
- response.set_cookie('answer', '42')
- return response
-有一种名为重定向的特殊响应类型。这种响应没有页面文档，只告诉浏览器一个新地址用
-以加载新页面。重定向经常在 Web 表单中使用，第 4 章会进行介绍。
-程序的基本结构 ｜ 15
-重定向经常使用 302 状态码表示，指向的地址由 Location 首部提供。重定向响应可以使用
-3 个值形式的返回值生成，也可在 Response 对象中设定。不过，由于使用频繁，Flask 提
-供了 redirect() 辅助函数，用于生成这种响应：
-from flask import redirect
-@app.route('/')
-def index():
- return redirect('http://www.example.com')
-还有一种特殊的响应由 abort 函数生成，用于处理错误。在下面这个例子中，如果 URL 中
-动态参数 id 对应的用户不存在，就返回状态码 404：
-from flask import abort
-@app.route('/user/<id>')
-def get_user(id):
- user = load_user(id)
- if not user:
- abort(404)
- return '<h1>Hello, %s</h1>' % user.name
-注意，abort 不会把控制权交还给调用它的函数，而是抛出异常把控制权交给 Web 服
-务器。
-2.6 Flask扩展
-Flask 被设计为可扩展形式，故而没有提供一些重要的功能，例如数据库和用户认证，所
-以开发者可以自由选择最适合程序的包，或者按需求自行开发。
-社区成员开发了大量不同用途的扩展，如果这还不能满足需求，你还可使用所有 Python 标
-准包或代码库。为了让你知道如何把扩展整合到程序中，接下来我们将在 hello.py 中添加
-一个扩展，使用命令行参数增强程序的功能。
-使用Flask-Script支持命令行选项
-Flask 的开发 Web 服务器支持很多启动设置选项，但只能在脚本中作为参数传给 app.run()
-函数。这种方式并不十分方便，传递设置选项的理想方式是使用命令行参数。
-Flask-Script 是一个 Flask 扩展，为 Flask 程序添加了一个命令行解析器。Flask-Script 自带
-了一组常用选项，而且还支持自定义命令。
-Flask-Script 扩展使用 pip 安装：
-(venv) $ pip install flask-script
-16 ｜ 第 2 章
-示例 2-3 显示了把命令行解析功能添加到 hello.py 程序中时需要修改的地方。
-示例 2-3 hello.py：使用 Flask-Script
-from flask.ext.script import Manager
-manager = Manager(app)
-# ...
-if __name__ == '__main__':
- manager.run()
-专为 Flask 开发的扩展都暴漏在 flask.ext 命名空间下。Flask-Script 输出了一个名为
-Manager 的类，可从 flask.ext.script 中引入。
-这个扩展的初始化方法也适用于其他很多扩展：把程序实例作为参数传给构造函数，初始
-化主类的实例。创建的对象可以在各个扩展中使用。在这里，服务器由 manager.run() 启
-动，启动后就能解析命令行了。
-如果你从 GitHub 上克隆了这个程序的 Git 仓库，那么可以执行 git checkout
-2c 签出程序的这个版本。
-这样修改之后，程序可以使用一组基本命令行选项。现在运行 hello.py，会显示一个用法
-消息：
-$ python hello.py
-usage: hello.py [-h] {shell,runserver} ...
-positional arguments:
- {shell,runserver}
- shell 在 Flask 应用上下文中运行 Python shell
- runserver 运行 Flask 开发服务器：app.run()
-optional arguments:
- -h, --help 显示帮助信息并退出
-shell 命令用于在程序的上下文中启动 Python shell 会话。你可以使用这个会话中运行维护
-任务或测试，还可调试异常。
-顾名思义，runserver 命令用来启动 Web 服务器。运行 python hello.py runserver 将以调
-试模式启动 Web 服务器，但是我们还有很多选项可用：
-(venv) $ python hello.py runserver --help
-usage: hello.py runserver [-h] [-t HOST] [-p PORT] [--threaded]
- [--processes PROCESSES] [--passthrough-errors] [-d]
- [-r]
-程序的基本结构 ｜ 17
-运行 Flask 开发服务器：app.run()
-optional arguments:
- -h, --help 显示帮助信息并退出
- -t HOST, --host HOST
- -p PORT, --port PORT
- --threaded
- --processes PROCESSES
- --passthrough-errors
- -d, --no-debug
- -r, --no-reload
---host 参数是个很有用的选项，它告诉 Web 服务器在哪个网络接口上监听来自客户端的
-连接。默认情况下，Flask 开发 Web 服务器监听 localhost 上的连接，所以只接受来自服
-务器所在计算机发起的连接。下述命令让 Web 服务器监听公共网络接口上的连接，允许同
-网中的其他计算机连接服务器：
-(venv) $ python hello.py runserver --host 0.0.0.0
- * Running on http://0.0.0.0:5000/
- * Restarting with reloader
-现在，Web 服务器可使用 http://a.b.c.d:5000/ 网络中的任一台电脑进行访问，其中“a.b.c.d”
-是服务器所在计算机的外网 IP 地址。
-本章介绍了请求响应的概念，不过响应的知识还有很多。对于使用模板生成响应，Flask
-提供了良好支持，这是个很重要的话题，下一章我们还要专门介绍模板。
-
-19
-第 3 章
-模板
-要想开发出易于维护的程序，关键在于编写形式简洁且结构良好的代码。到目前为止，你
-看到的示例都太简单，无法说明这一点，但 Flask 视图函数的两个完全独立的作用却被融
-合在了一起，这就产生了一个问题。
-视图函数的作用很明确，即生成请求的响应，如第 2 章中的示例所示。对最简单的请求来说，
-这就足够了，但一般而言，请求会改变程序的状态，而这种变化也会在视图函数中产生。
-例如，用户在网站中注册了一个新账户。用户在表单中输入电子邮件地址和密码，然后点
-击提交按钮。服务器接收到包含用户输入数据的请求，然后 Flask 把请求分发到处理注册
-请求的视图函数。这个视图函数需要访问数据库，添加新用户，然后生成响应回送浏览
-器。这两个过程分别称为业务逻辑和表现逻辑。
-把业务逻辑和表现逻辑混在一起会导致代码难以理解和维护。假设要为一个大型表格构建
-HTML 代码，表格中的数据由数据库中读取的数据以及必要的 HTML 字符串连接在一起。
-把表现逻辑移到模板中能够提升程序的可维护性。
-模板是一个包含响应文本的文件，其中包含用占位变量表示的动态部分，其具体值只在请
-求的上下文中才能知道。使用真实值替换变量，再返回最终得到的响应字符串，这一过程
-称为渲染。为了渲染模板，Flask 使用了一个名为 Jinja2 的强大模板引擎。
-3.1 Jinja2模板引擎
-形式最简单的 Jinja2 模板就是一个包含响应文本的文件。示例 3-1 是一个 Jinja2 模板，它
-和示例 2-1 中 index() 视图函数的响应一样。
-20 ｜ 第 3 章
 示例 3-1 templates/index.html：Jinja2 模板
+```
 <h1>Hello World!</h1>
-示例 2-2 中，视图函数 user() 返回的响应中包含一个使用变量表示的动态部分。示例 3-2
-实现了这个响应。
+```
+示例 2-2 中，视图函数 user() 返回的响应中包含一个使用变量表示的动态部分。示例 3-2实现了这个响应。
+
 示例 3-2 templates/user.html：Jinja2 模板
+```
 <h1>Hello, {{ name }}!</h1>
-3.1.1　渲染模板
-默认情况下，Flask 在程序文件夹中的 templates 子文件夹中寻找模板。在下一个 hello.py
-版本中，要把前面定义的模板保存在 templates 文件夹中，并分别命名为 index.html 和 user.
-html。
+```
+#### 3.1.1　渲染模板
+默认情况下，Flask 在程序文件夹中的 templates 子文件夹中寻找模板。在下一个 hello.py版本中，要把前面定义的模板保存在 templates 文件夹中，并分别命名为 index.html 和 user.html。
+
 程序中的视图函数需要修改一下，以便渲染这些模板。修改方法参见示例 3-3。
+
 示例 3-3 hello.py：渲染模板
-from flask import Flask, render_template
+```from flask import Flask, render_template
 # ...
 @app.route('/')
 def index():
- return render_template('index.html')
+    return render_template('index.html')
 @app.route('/user/<name>')
 def user(name):
- return render_template('user.html', name=name)
-Flask 提供的 render_template 函数把 Jinja2 模板引擎集成到了程序中。render_template 函
-数的第一个参数是模板的文件名。随后的参数都是键值对，表示模板中变量对应的真实
-值。在这段代码中，第二个模板收到一个名为 name 的变量。
-前例中的 name=name 是关键字参数，这类关键字参数很常见，但如果你不熟悉它们的话，
-可能会觉得迷惑且难以理解。左边的“name”表示参数名，就是模板中使用的占位符；右
-边的“name”是当前作用域中的变量，表示同名参数的值。
-如果你从 GitHub 上克隆了这个程序的 Git 仓库，那么可以执行 git checkout
-3a 签出程序的这个版本。
-模板 ｜ 21
-3.1.2　变量
-示例 3-2 在模板中使用的 {{ name }} 结构表示一个变量，它是一种特殊的占位符，告诉模
-板引擎这个位置的值从渲染模板时使用的数据中获取。
-Jinja2 能识别所有类型的变量，甚至是一些复杂的类型，例如列表、字典和对象。在模板
-中使用变量的一些示例如下：
+    return render_template('user.html', name=name)
+```
+Flask 提供的 render_template 函数把 Jinja2 模板引擎集成到了程序中。render_template 函数的第一个参数是模板的文件名。随后的参数都是键值对，表示模板中变量对应的真实值。在这段代码中，第二个模板收到一个名为 name 的变量。
+
+前例中的 name=name 是关键字参数，这类关键字参数很常见，但如果你不熟悉它们的话，可能会觉得迷惑且难以理解。左边的“name”表示参数名，就是模板中使用的占位符；右边的“name”是当前作用域中的变量，表示同名参数的值。
+
+>提示：如果你从 GitHub 上克隆了这个程序的 Git 仓库，那么可以执行 git checkout 3a 签出程序的这个版本。
+
+### 3.1.2　变量
+示例 3-2 在模板中使用的 {{ name }} 结构表示一个变量，它是一种特殊的占位符，告诉模板引擎这个位置的值从渲染模板时使用的数据中获取。
+
+Jinja2 能识别所有类型的变量，甚至是一些复杂的类型，例如列表、字典和对象。在模板中使用变量的一些示例如下：
+```
 <p>A value from a dictionary: {{ mydict['key'] }}.</p>
 <p>A value from a list: {{ mylist[3] }}.</p>
 <p>A value from a list, with a variable index: {{ mylist[myintvar] }}.</p>
 <p>A value from an object's method: {{ myobj.somemethod() }}.</p>
-可以使用过滤器修改变量，过滤器名添加在变量名之后，中间使用竖线分隔。例如，下述
-模板以首字母大写形式显示变量 name 的值：
+```
+可以使用过滤器修改变量，过滤器名添加在变量名之后，中间使用竖线分隔。例如，下述模板以首字母大写形式显示变量 name 的值：
+```
 Hello, {{ name|capitalize }}
+```
 表 3-1 列出了 Jinja2 提供的部分常用过滤器。
+
 表3-1 Jinja2变量过滤器
-过滤器名 说　　明
-safe 渲染值时不转义
-capitalize 把值的首字母转换成大写，其他字母转换成小写
-lower 把值转换成小写形式
-upper 把值转换成大写形式
-title 把值中每个单词的首字母都转换成大写
-trim 把值的首尾空格去掉
-striptags 渲染之前把值中所有的 HTML 标签都删掉
-safe 过滤器值得特别说明一下。默认情况下，出于安全考虑，Jinja2 会转义所有变量。例
-如，如果一个变量的值为 '<h1>Hello</h1>'，Jinja2 会将其渲染成 '&lt;h1&gt;Hello&lt;/
-h1&gt;'，浏览器能显示这个 h1 元素，但不会进行解释。很多情况下需要显示变量中存储
-的 HTML 代码，这时就可使用 safe 过滤器。
-千万别在不可信的值上使用 safe 过滤器，例如用户在表单中输入的文本。
-完整的过滤器列表可在 Jinja2 文档（http://jinja.pocoo.org/docs/templates/#builtin-filters）中
-查看。
-22 ｜ 第 3 章
-3.1.3　控制结构
-Jinja2 提供了多种控制结构，可用来改变模板的渲染流程。本节使用简单的例子介绍其中
-最有用的控制结构。
+
+过滤器名    |说　　明
+-----------|-------
+safe       |渲染值时不转义
+capitalize |把值的首字母转换成大写，其他字母转换成小写
+lower      |把值转换成小写形式
+upper      |把值转换成大写形式
+title      |把值中每个单词的首字母都转换成大写
+trim       |把值的首尾空格去掉
+striptags  |渲染之前把值中所有的 HTML 标签都删掉
+
+safe 过滤器值得特别说明一下。默认情况下，出于安全考虑，Jinja2 会转义所有变量。例如，如果一个变量的值为 '<h1>Hello</h1>'，Jinja2 会将其渲染成 '&lt;h1&gt;Hello&lt;/h1&gt;'，浏览器能显示这个 h1 元素，但不会进行解释。很多情况下需要显示变量中存储的 HTML 代码，这时就可使用 safe 过滤器。
+
+>警告：千万别在不可信的值上使用 safe 过滤器，例如用户在表单中输入的文本。
+
+完整的过滤器列表可在 Jinja2 文档（http://jinja.pocoo.org/docs/templates/#builtin-filters）中查看。
+
+### 3.1.3　控制结构
+Jinja2 提供了多种控制结构，可用来改变模板的渲染流程。本节使用简单的例子介绍其中最有用的控制结构。
+
 下面这个例子展示了如何在模板中使用条件控制语句：
+```
 {% if user %}
- Hello, {{ user }}!
+    Hello, {{ user }}!
 {% else %}
- Hello, Stranger!
+    Hello, Stranger!
 {% endif %}
+```
 另一种常见需求是在模板中渲染一组元素。下例展示了如何使用 for 循环实现这一需求：
+```
 <ul>
- {% for comment in comments %}
- <li>{{ comment }}</li>
- {% endfor %}
+    {% for comment in comments %}
+    <li>{{ comment }}</li>
+    {% endfor %}
 </ul>
+```
 Jinja2 还支持宏。宏类似于 Python 代码中的函数。例如：
+```
 {% macro render_comment(comment) %}
- <li>{{ comment }}</li>
+    <li>{{ comment }}</li>
 {% endmacro %}
 <ul>
- {% for comment in comments %}
- {{ render_comment(comment) }}
- {% endfor %}
+    {% for comment in comments %}
+    {{ render_comment(comment) }}
+    {% endfor %}
 </ul>
+```
 为了重复使用宏，我们可以将其保存在单独的文件中，然后在需要使用的模板中导入：
+```
 {% import 'macros.html' as macros %}
 <ul>
- {% for comment in comments %}
- {{ macros.render_comment(comment) }}
- {% endfor %}
+    {% for comment in comments %}
+    {{ macros.render_comment(comment) }}
+    {% endfor %}
 </ul>
 `
-需要在多处重复使用的模板代码片段可以写入单独的文件，再包含在所有模板中，以避免
-重复：
+```
+需要在多处重复使用的模板代码片段可以写入单独的文件，再包含在所有模板中，以避免重复：
+```
 {% include 'common.html' %}
-另一种重复使用代码的强大方式是模板继承，它类似于 Python 代码中的类继承。首先，创
-建一个名为 base.html 的基模板：
-模板 ｜ 23
+```
+另一种重复使用代码的强大方式是模板继承，它类似于 Python 代码中的类继承。首先，创建一个名为 base.html 的基模板：
+```
 <html>
 <head>
- {% block head %}
- <title>{% block title %}{% endblock %} - My Application</title>
- {% endblock %}
+    {% block head %}
+    <title>{% block title %}{% endblock %} - My Application</title>
+    {% endblock %}
 </head>
 <body>
- {% block body %}
- {% endblock %}
+    {% block body %}
+    {% endblock %}
 </body>
 </html>
-block 标签定义的元素可在衍生模板中修改。在本例中，我们定义了名为 head、title 和
-body 的块。注意，title 包含在 head 中。下面这个示例是基模板的衍生模板：
+```
+block 标签定义的元素可在衍生模板中修改。在本例中，我们定义了名为 head、title 和body 的块。注意，title 包含在 head 中。下面这个示例是基模板的衍生模板：
+```
 {% extends "base.html" %}
 {% block title %}Index{% endblock %}
 {% block head %}
- {{ super() }}
- <style>
- </style>
+    {{ super() }}
+    <style>
+    </style>
 {% endblock %}
 {% block body %}
 <h1>Hello, World!</h1>
 {% endblock %}
-extends 指令声明这个模板衍生自 base.html。在 extends 指令之后，基模板中的 3 个块被
-重新定义，模板引擎会将其插入适当的位置。注意新定义的 head 块，在基模板中其内容不
-是空的，所以使用 super() 获取原来的内容。
+```
+extends 指令声明这个模板衍生自 base.html。在 extends 指令之后，基模板中的 3 个块被重新定义，模板引擎会将其插入适当的位置。注意新定义的 head 块，在基模板中其内容不是空的，所以使用 super() 获取原来的内容。
+
 稍后会展示这些控制结构的具体用法，让你了解一下它们的工作原理。
-3.2　使用Flask-Bootstrap集成Twitter Bootstrap
-Bootstrap（http://getbootstrap.com/）是 Twitter 开发的一个开源框架，它提供的用户界面组
-件可用于创建整洁且具有吸引力的网页，而且这些网页还能兼容所有现代 Web 浏览器。
-Bootstrap 是客户端框架，因此不会直接涉及服务器。服务器需要做的只是提供引用了
-Bootstrap 层 叠 样 式 表（CSS） 和 JavaScript 文 件 的 HTML 响 应， 并 在 HTML、CSS 和
-JavaScript 代码中实例化所需组件。这些操作最理想的执行场所就是模板。
-要想在程序中集成 Bootstrap，显然要对模板做所有必要的改动。不过，更简单的方法是
-使用一个名为 Flask-Bootstrap 的 Flask 扩展，简化集成的过程。Flask-Bootstrap 使用 pip
-安装：
+
+### 3.2　使用Flask-Bootstrap集成Twitter Bootstrap
+Bootstrap（http://getbootstrap.com/）是 Twitter 开发的一个开源框架，它提供的用户界面组件可用于创建整洁且具有吸引力的网页，而且这些网页还能兼容所有现代 Web 浏览器。
+
+Bootstrap 是客户端框架，因此不会直接涉及服务器。服务器需要做的只是提供引用了 Bootstrap 层 叠 样 式 表（CSS） 和 JavaScript 文 件 的 HTML 响 应， 并 在 HTML、CSS 和 JavaScript 代码中实例化所需组件。这些操作最理想的执行场所就是模板。
+
+要想在程序中集成 Bootstrap，显然要对模板做所有必要的改动。不过，更简单的方法是使用一个名为 Flask-Bootstrap 的 Flask 扩展，简化集成的过程。Flask-Bootstrap 使用 pip安装：
+```
 (venv) $ pip install flask-bootstrap
-24 ｜ 第 3 章
+```
 Flask 扩展一般都在创建程序实例时初始化。示例 3-4 是 Flask-Bootstrap 的初始化方法。
-示例 3-4 hello.py：初始化 Flask-Bootstrap
+
+**示例 3-4** hello.py：初始化 Flask-Bootstrap
+```
 from flask.ext.bootstrap import Bootstrap
 # ...
 bootstrap = Bootstrap(app)
-和第 2 章中的 Flask-Script 一样，Flask-Bootstrap 也从 flask.ext 命名空间中导入，然后把
-程序实例传入构造方法进行初始化。
-初始化 Flask-Bootstrap 之后，就可以在程序中使用一个包含所有 Bootstrap 文件的基模板。
-这个模板利用 Jinja2 的模板继承机制，让程序扩展一个具有基本页面结构的基模板，其中
-就有用来引入 Bootstrap 的元素。示例 3-5 是把 user.html 改写为衍生模板后的新版本。
-示例 3-5 templates/user.html：使用 Flask-Bootstrap 的模板
+```
+和第 2 章中的 Flask-Script 一样，Flask-Bootstrap 也从 flask.ext 命名空间中导入，然后把程序实例传入构造方法进行初始化。
+
+初始化 Flask-Bootstrap 之后，就可以在程序中使用一个包含所有 Bootstrap 文件的基模板。这个模板利用 Jinja2 的模板继承机制，让程序扩展一个具有基本页面结构的基模板，其中就有用来引入 Bootstrap 的元素。示例 3-5 是把 user.html 改写为衍生模板后的新版本。
+
+**示例 3-5** templates/user.html：使用 Flask-Bootstrap 的模板
+```
 {% extends "bootstrap/base.html" %}
 {% block title %}Flasky{% endblock %}
 {% block navbar %}
 <div class="navbar navbar-inverse" role="navigation">
- <div class="container">
- <div class="navbar-header">
- <button type="button" class="navbar-toggle"
- data-toggle="collapse" data-target=".navbar-collapse">
- <span class="sr-only">Toggle navigation</span>
- <span class="icon-bar"></span>
- <span class="icon-bar"></span>
- <span class="icon-bar"></span>
- </button>
- <a class="navbar-brand" href="/">Flasky</a>
- </div>
- <div class="navbar-collapse collapse">
- <ul class="nav navbar-nav">
- <li><a href="/">Home</a></li>
- </ul>
- </div>
- </div>
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/">Flasky</a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a href="/">Home</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 {% endblock %}
 {% block content %}
 <div class="container">
- <div class="page-header">
- <h1>Hello, {{ name }}!</h1>
- </div>
+    <div class="page-header">
+        <h1>Hello, {{ name }}!</h1>
+    </div>
 </div>
 {% endblock %}
-Jinja2 中的 extends 指令从 Flask-Bootstrap 中导入 bootstrap/base.html，从而实现模板继
-承。Flask-Bootstrap 中的基模板提供了一个网页框架，引入了 Bootstrap 中的所有 CSS 和
-模板 ｜ 25
-JavaScript 文件。
-基模板中定义了可在衍生模板中重定义的块。block 和 endblock 指令定义的块中的内容可
-添加到基模板中。
-上面这个 user.html 模板定义了 3 个块，分别名为 title、navbar 和 content。这些块都是
-基模板提供的，可在衍生模板中重新定义。title 块的作用很明显，其中的内容会出现在
-渲染后的 HTML 文档头部，放在 <title> 标签中。navbar 和 content 这两个块分别表示页
-面中的导航条和主体内容。
-在这个模板中，navbar 块使用 Bootstrap 组件定义了一个简单的导航条。content 块中有个
-<div> 容器，其中包含一个页面头部。之前版本的模板中的欢迎信息，现在就放在这个页
-面头部。改动之后的程序如图 3-1 所示。
-如果你从 GitHub 上克隆了这个程序的 Git 仓库，那么可以执行 git checkout
-3b 签出程序的这个版本。Bootstrap 官方文档（http://getbootstrap.com/）是很
-好的学习资源，有很多可以直接复制粘贴的示例。
+```
+Jinja2 中的 extends 指令从 Flask-Bootstrap 中导入 bootstrap/base.html，从而实现模板继承。Flask-Bootstrap 中的基模板提供了一个网页框架，引入了 Bootstrap 中的所有 CSS 和JavaScript 文件。
+
+基模板中定义了可在衍生模板中重定义的块。block 和 endblock 指令定义的块中的内容可添加到基模板中。
+
+上面这个 user.html 模板定义了 3 个块，分别名为 title、navbar 和 content。这些块都是基模板提供的，可在衍生模板中重新定义。title 块的作用很明显，其中的内容会出现在渲染后的 HTML 文档头部，放在 <code><title></code> 标签中。navbar 和 content 这两个块分别表示页面中的导航条和主体内容。
+
+在这个模板中，navbar 块使用 Bootstrap 组件定义了一个简单的导航条。content 块中有个<code><div></code> 容器，其中包含一个页面头部。之前版本的模板中的欢迎信息，现在就放在这个页面头部。改动之后的程序如图 3-1 所示。
+
+>提示：如果你从 GitHub 上克隆了这个程序的 Git 仓库，那么可以执行 git checkout 3b 签出程序的这个版本。Bootstrap 官方文档（http://getbootstrap.com/）是很好的学习资源，有很多可以直接复制粘贴的示例。
+
 图 3-1 Twitter Bootstrap 模板
-Flask-Bootstrap 的 base.html 模板还定义了很多其他块，都可在衍生模板中使用。表 3-2 列
-出了所有可用的快。
+
+Flask-Bootstrap 的 base.html 模板还定义了很多其他块，都可在衍生模板中使用。表 3-2 列出了所有可用的快。
+
 表3-2 Flask-Bootstrap基模板中定义的块
-块　　名 说　　明
-doc 整个 HTML 文档
-html_attribs <html> 标签的属性
-html <html> 标签中的内容
-head <head> 标签中的内容
-title <title> 标签中的内容
-26 ｜ 第 3 章
-块　　名 说　　明
-metas 一组 <meta> 标签
-styles 层叠样式表定义
-body_attribs <body> 标签的属性
-body <body> 标签中的内容
-navbar 用户定义的导航条
-content 用户定义的页面内容
-scripts 文档底部的 JavaScript 声明
+
+块　　名      |说　　明
+-------------|----------
+doc          |整个 HTML 文档
+html_attribs |<html> 标签的属性
+html         |<html> 标签中的内容
+head         |<head> 标签中的内容
+title        |<title> 标签中的内容
+metas        |一组 <meta> 标签
+styles       |层叠样式表定义
+body_attribs |<body> 标签的属性
+body         |<body> 标签中的内容
+navbar       |用户定义的导航条
+content      |用户定义的页面内容
+scripts      |文档底部的 JavaScript 声明
+
 表 3-2 中的很多块都是 Flask-Bootstrap 自用的，如果直接重定义可能会导致一些问题。例
 如，Bootstrap 所需的文件在 styles 和 scripts 块中声明。如果程序需要向已经有内容的块
 中添加新内容，必须使用 Jinja2 提供的 super() 函数。例如，如果要在衍生模板中添加新
