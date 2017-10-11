@@ -11,39 +11,39 @@
 
 ## Flask Web Development
 Part I. Introduction to Flask
-1. [Installation](flask-dev/1.insatll.md)
+1. [安装](flask-dev/1.install.md)
     * Using Virtual Environments
     * Installing Python Packages with pip
-2. [Basic Application Structure](flask-dev/2.Basic_Application_Structure.md)
+2. [程序的基本结构](flask-dev/2.Basic_Application_Structure.md)
     * Initialization
     * Routes and View Functions
     * Server Startup
     * A Complete Application
     * Flask Extensions
-The Request-Response Cycle
-3. Templates
-The Jinja2 Template Engine
-Twitter Bootstrap Integration with Flask-Bootstrap
-Custom Error Pages
-Links
-Static Files
-Localization of Dates and Times with Flask-Moment
+    * The Request-Response Cycle
+3. [模板](flask/3.Templates.md)
+    * The Jinja2 Template Engine
+    * Twitter Bootstrap Integration with Flask-Bootstrap
+    * Custom Error Pages
+    * Links
+    * Static Files
+    * Localization of Dates and Times with Flask-Moment
 4. Web Forms
-Cross-Site Request Forgery (CSRF) Protection
-Form Classes
-HTML Rendering of Forms
-Form Handling in View Functions
-Redirects and User Sessions
-Message Flashing
+    * Cross-Site Request Forgery (CSRF) Protection
+    * Form Classes
+    * HTML Rendering of Forms
+    * Form Handling in View Functions
+    * Redirects and User Sessions
+    * Message Flashing
 5. Databases
-SQL Databases
-NoSQL Databases
-SQL or NoSQL?
-Python Database Frameworks
-Database Management with Flask-SQLAlchemy
-Database Use in View Functions
-Integration with the Python Shell
-Database Migrations with Flask-Migrate
+    * SQL Databases
+    * NoSQL Databases
+    * SQL or NoSQL?
+    * Python Database Frameworks
+    * Database Management with Flask-SQLAlchemy
+    * Database Use in View Functions
+    * Integration with the Python Shell
+    * Database Migrations with Flask-Migrate
 6. Emails
 Email Support with Flask-Mail
 7. Large Application Structure
