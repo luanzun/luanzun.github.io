@@ -45,7 +45,7 @@ Part I. Introduction to Flask
     * Integration with the Python Shell
     * Database Migrations with Flask-Migrate
 6. Emails
-Email Support with Flask-Mail
+    * Email Support with Flask-Mail
 7. Large Application Structure
 Project Structure
 Configuration Options
