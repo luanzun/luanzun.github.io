@@ -47,14 +47,14 @@ Part I. Introduction to Flask
 6. Emails
     * Email Support with Flask-Mail
 7. Large Application Structure
-Project Structure
-Configuration Options
-Application Package
-Launch Script
-Unit Tests
-Requirements File
-Database Setup
-Part II. Example: A Social Blogging Application
+    * Project Structure
+    * Configuration Options
+    * Application Package
+    * Launch Script
+    * Unit Tests
+    * Requirements File
+    * Database Setup
+    * Part II. Example: A Social Blogging Application
 8. User Authentication
 Authentication Extensions for Flask
 Password Security
