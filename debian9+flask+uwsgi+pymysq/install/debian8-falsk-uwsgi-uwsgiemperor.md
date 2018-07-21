@@ -101,6 +101,9 @@ chown -R www:www /var/log/uwsgi/
 
 8. 运行服务：
 ```
-service uwsgi start
+systemctl start emperor.uwsgi.service
 ```
-
+检查状态：
+```
+systemctl status emperor.uwsgi.service
+```
