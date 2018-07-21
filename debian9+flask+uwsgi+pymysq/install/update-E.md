@@ -1,4 +1,4 @@
-在udebian `apt-get upgrade`的时候，遇到：
+在debian `apt-get upgrade`的时候，遇到：
 
   E: Could not get lock /var/cache/apt/archives/lock - open (11 Resource temporarily unavailable)
   E: Unable to lock the download directory

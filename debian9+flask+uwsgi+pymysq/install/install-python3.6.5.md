@@ -65,7 +65,8 @@ make && make install
     Collecting setuptools
     Collecting pip
     Installing collected packages: setuptools, pip
-    Successfully installed pip-9.0.1 setuptools-28.8.0
+    Successfully installed pip-9.0.3 setuptools-39.0.1
+
 
 
 9.清理配置文件（有没有必要进行这一步，我也不知道。）

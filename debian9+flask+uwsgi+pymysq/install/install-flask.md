@@ -13,18 +13,7 @@ source flask/bin/activate
 ```
 3.在虚拟环境状态下，使用 pip3 安装 flask及相关扩展
 ```
-pip3 install flask
-pip3 install flask-login
-pip3 install flask-openid
-pip3 install flask-mail
-pip3 install flask-sqlalchemy
-pip3 install sqlalchemy-migrate
-pip3 install flask-whooshalchemy
-pip3 install flask-wtf
-pip3 install flask-babel
-pip3 install guess_language
-pip3 install flipflop
-pip3 install coverage
+# pip3 install flask flask-login flask-openid flask-mail flask-sqlalchemy sqlalchemy-migrate flask-whooshalchemy flask-wtf flask-babel guess_language flipflop coverage
 ```
 4.为应用程序创建基本的文件结构(提示：如果退出了虚拟环境状态，那么需要你 *cd* 到 网站根目录（本例中的 *pyte.vip*）中)：
 

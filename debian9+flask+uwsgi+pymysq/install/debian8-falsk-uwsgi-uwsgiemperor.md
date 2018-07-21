@@ -27,7 +27,7 @@ chmod-socket = 644
 callable = app
 
 #日志文件的路径 location of log files
-logto = /wwwlogs/uwsgi/%n.log 
+logto = /home/wwwlogs/uwsgi/%n.log 
 
 # 处理器数
 processes = 4
@@ -40,8 +40,8 @@ python-autoreload=1
 ```
 2. 新建保存日志的文件夹，并赋权
 ```
-mkdir -p /wwwlogs/uwsgi
-chown -R www:www /wwwlogs/uwsgi
+mkdir -p /home/wwwlogs/uwsgi
+chown -R www:www /home/wwwlogs/uwsgi
 ```
 
 3. 在网站的 nginx conf 配置文件中，添加：
@@ -79,7 +79,11 @@ NotifyAccess=all
 [Install]
 WantedBy=multi-user.target
 ```
-5. 上述代码中，<code>/etc/uwsgi/emperor.ini</code> 文件的代码如下：
+5. 创建`/etc/uwsgi`文件夹：
+```
+mkdir /etc/uwsgi 
+```
+创建文件<code>/etc/uwsgi/emperor.ini</code> ，里面代码如下：
 ```
 [uwsgi]
 emperor = /etc/uwsgi/vassals
@@ -89,7 +93,7 @@ gid = www
 
 6. 把网站的 uwsgi.ini 文件要给个软链，加到 <code>/etc/uwsgi/vassals/</code> 文件夹中：
 ```
-mkdir /etc/uwsgi && mkdir /etc/uwsgi/vassals
+mkdir /etc/uwsgi/vassals
 ln -s /home/luejiao.com/luejiao_uwsgi.ini /etc/uwsgi/vassals
 ```
 
@@ -101,6 +105,26 @@ chown -R www:www /var/log/uwsgi/
 
 8. 运行服务：
 ```
-service uwsgi start
+systemctl start emperor.uwsgi.service
+```
+检查状态：
+```
+systemctl status emperor.uwsgi.service
+```
+你会看到提示：
+```
+emperor.uwsgi.service - uWSGI Emperor
+   Loaded: loaded (/etc/systemd/system/emperor.uwsgi.service; disabled; vendor preset: enabled)
+   Active: active (running) since Sat 2018-06-23 11:34:18 CST; 7s ago
+Main PID: 19288 (uwsgi)
+   Status: "The Emperor is governing 1 vassals"
+    Tasks: 2 (limit: 19660)
+   CGroup: /system.slice/emperor.uwsgi.service
+           └─19288 /usr/local/bin/uwsgi --ini /etc/uwsgi/emperor.ini
+```
+9. 开机启动：
+```
+systemctl enable emperor.uwsgi.service
 ```
 
+end
